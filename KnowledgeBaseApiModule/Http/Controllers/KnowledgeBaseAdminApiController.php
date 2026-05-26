@@ -22,6 +22,19 @@ class KnowledgeBaseAdminApiController extends Controller
         return $locales;
     }
 
+    /**
+     * KbCategory exposes setAttributeInLocale, KbArticle does not — so we
+     * emulate the same behaviour via setLocale + setAttribute and restore the
+     * previous locale afterwards. Works uniformly for both models.
+     */
+    private function setTranslatable($entity, string $field, $value, string $locale): void
+    {
+        $prevLocale = $entity->getLocale();
+        $entity->setLocale($locale);
+        $entity->setAttribute($field, (string)$value);
+        $entity->setLocale($prevLocale);
+    }
+
     private function applyTranslatables($entity, Request $request, array $fields, Mailbox $mailbox): void
     {
         $defaultLocale = \Kb::defaultLocale($mailbox);
@@ -31,11 +44,11 @@ class KnowledgeBaseAdminApiController extends Controller
             $i18nField = $field.'_i18n';
             if ($request->has($i18nField) && is_array($request->input($i18nField))) {
                 foreach ($request->input($i18nField) as $locale => $value) {
-                    $entity->setAttributeInLocale($field, (string)$value, (string)$locale);
+                    $this->setTranslatable($entity, $field, $value, (string)$locale);
                 }
             } elseif ($request->has($field)) {
                 $locale = $requestLocale ?: $defaultLocale;
-                $entity->setAttributeInLocale($field, (string)$request->input($field), (string)$locale);
+                $this->setTranslatable($entity, $field, $request->input($field), (string)$locale);
             }
         }
     }
@@ -302,7 +315,7 @@ class KnowledgeBaseAdminApiController extends Controller
         if (!$existingSlug) {
             $title = $article->getAttributeInLocale('title', $defaultLocale);
             if ($title) {
-                $article->setAttributeInLocale('slug', \Kb::slugify($title), $defaultLocale);
+                $this->setTranslatable($article, 'slug', \Kb::slugify($title), $defaultLocale);
             }
         }
 
@@ -311,7 +324,7 @@ class KnowledgeBaseAdminApiController extends Controller
         foreach ($this->getLocales($mailbox) as $locale) {
             $text = $article->getAttributeInLocale('text', $locale);
             if ($text !== '' && $text !== null) {
-                $article->setAttributeInLocale('text', \Helper::stripDangerousTags($text, $allowedTags), $locale);
+                $this->setTranslatable($article, 'text', \Helper::stripDangerousTags($text, $allowedTags), $locale);
             }
         }
 
