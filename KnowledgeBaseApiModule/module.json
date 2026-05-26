@@ -1,8 +1,8 @@
 {
   "name": "Knowledge Base API",
   "alias": "knowledgebase-api-module",
-  "description": "This module adds the a public API for categories and articles from the Knowledge base module",
-  "version": "1.0.0",
+  "description": "Public read-only API plus authenticated admin API (CRUD, multilingual, attachments) for the Knowledge Base module. Admin endpoints reuse the ApiWebhooks module's API key.",
+  "version": "1.1.0",
   "detailsUrl": "https://github.com/jtorvald/freescout-knowledge-api",
   "author": "jtorvald",
   "authorUrl": "https://github.com/jtorvald/",
