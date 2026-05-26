@@ -1,9 +1,15 @@
 <?php
 
 // Public read-only endpoints (no auth, returns only published/public content).
+// {mailboxId} and {categoryId} are constrained to digits so that path segments
+// like /categories/full are free to be matched by the admin routes below.
 Route::group(['prefix' => \Helper::getSubdirectory(), 'namespace' => 'Modules\KnowledgeBaseApiModule\Http\Controllers'], function () {
-    Route::get('/api/knowledgebase/{mailboxId}/categories', ['uses' => 'KnowledgeBaseApiController@get', 'laroute' => false])->name('knowledgebase.index');
-    Route::get('/api/knowledgebase/{mailboxId}/categories/{categoryId}', ['uses' => 'KnowledgeBaseApiController@category', 'laroute' => false])->name('knowledgebase.category');
+    Route::get('/api/knowledgebase/{mailboxId}/categories', ['uses' => 'KnowledgeBaseApiController@get', 'laroute' => false])
+        ->where('mailboxId', '[0-9]+')
+        ->name('knowledgebase.index');
+    Route::get('/api/knowledgebase/{mailboxId}/categories/{categoryId}', ['uses' => 'KnowledgeBaseApiController@category', 'laroute' => false])
+        ->where(['mailboxId' => '[0-9]+', 'categoryId' => '[0-9]+'])
+        ->name('knowledgebase.category');
 });
 
 // Authenticated admin endpoints — reuse ApiWebhooks' API key via its ApiAuth middleware.
